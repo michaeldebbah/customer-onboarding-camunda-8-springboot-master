@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?><bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1gdliox" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Web Modeler" exporterVersion="b72d66c" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="1.3.0" camunda:diagramRelationId="aaa8197b-0b5b-4c89-9b73-b90fa742ceb0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn">
+  <bpmn:process id="customer-onboarding" name="Customer Onboarding (Simple)" isExecutable="true">
+    <bpmn:startEvent id="StartEventCustomerOnboardingSimple" name="Customer order received">
+      <bpmn:outgoing>Flow_0ysyrkd</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_0ysyrkd" sourceRef="StartEventCustomerOnboardingSimple" targetRef="TaskScoreCustomer"/>
+    <bpmn:serviceTask id="TaskScoreCustomer" name="Score customer">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="scoreCustomer"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0ysyrkd</bpmn:incoming>
+      <bpmn:outgoing>Flow_0ynpuyj</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GatewayOrderAccepted" name="Order accepted?">
+      <bpmn:incoming>Flow_0rv7lva</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlowOrderAcceptedNo</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlowOrderAcceptedYes</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEventRejected" name="Customer order rejected">
+      <bpmn:incoming>SequenceFlowOrderAcceptedNo</bpmn:incoming>
+      <bpmn:incoming>Flow_0n2y7ny</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlowOrderAcceptedNo" name="No" sourceRef="GatewayOrderAccepted" targetRef="EndEventRejected">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=(automaticProcessing = false)</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlowOrderAcceptedYes" name="Yes" sourceRef="GatewayOrderAccepted" targetRef="TaskCreateCustomerInCrm">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=( automaticProcessing=true )</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="EndEventProcessed" name="Customer order processed">
+      <bpmn:incoming>Flow_0y7x6do</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0y7x6do" sourceRef="TaskCreateCustomerInCrm" targetRef="EndEventProcessed"/>
+    <bpmn:serviceTask id="TaskCreateCustomerInCrm" name="Create&#10;customer order in CRM system">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="addCustomerToCrm"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlowOrderAcceptedYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_0y7x6do</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="TaskApproveCustomerOrder" name="Approve customer order">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="userTask"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0ynpuyj</bpmn:incoming>
+      <bpmn:outgoing>Flow_0rv7lva</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_0ynpuyj" sourceRef="TaskScoreCustomer" targetRef="TaskApproveCustomerOrder"/>
+    <bpmn:sequenceFlow id="Flow_0rv7lva" sourceRef="TaskApproveCustomerOrder" targetRef="GatewayOrderAccepted"/>
+    <bpmn:boundaryEvent id="Event_0k14341" attachedToRef="TaskApproveCustomerOrder">
+      <bpmn:extensionElements/>
+      <bpmn:outgoing>Flow_04zrgdy</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_07it3j6">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT30S</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_04zrgdy" sourceRef="Event_0k14341" targetRef="Activity_0bu252v"/>
+    <bpmn:sequenceFlow id="Flow_0n2y7ny" sourceRef="Activity_0bu252v" targetRef="EndEventRejected"/>
+    <bpmn:serviceTask id="Activity_0bu252v" name="Handle Time Out">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="handleTimeOut"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_04zrgdy</bpmn:incoming>
+      <bpmn:outgoing>Flow_0n2y7ny</bpmn:outgoing>
+    </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="customer-onboarding">
+      <bpmndi:BPMNEdge id="Flow_0y7x6do_di" bpmnElement="Flow_0y7x6do">
+        <di:waypoint x="810" y="127"/>
+        <di:waypoint x="882" y="127"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0amyhlw_di" bpmnElement="SequenceFlowOrderAcceptedYes">
+        <di:waypoint x="645" y="127"/>
+        <di:waypoint x="710" y="127"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="669" y="109" width="18" height="14"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0zlu1eg_di" bpmnElement="SequenceFlowOrderAcceptedNo">
+        <di:waypoint x="620" y="152"/>
+        <di:waypoint x="620" y="222"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="628" y="184" width="15" height="14"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ysyrkd_di" bpmnElement="Flow_0ysyrkd">
+        <di:waypoint x="215" y="127"/>
+        <di:waypoint x="270" y="127"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ynpuyj_di" bpmnElement="Flow_0ynpuyj">
+        <di:waypoint x="370" y="127"/>
+        <di:waypoint x="430" y="127"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0rv7lva_di" bpmnElement="Flow_0rv7lva">
+        <di:waypoint x="530" y="127"/>
+        <di:waypoint x="595" y="127"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_04zrgdy_di" bpmnElement="Flow_04zrgdy">
+        <di:waypoint x="500" y="185"/>
+        <di:waypoint x="500" y="310"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0n2y7ny_di" bpmnElement="Flow_0n2y7ny">
+        <di:waypoint x="550" y="350"/>
+        <di:waypoint x="576" y="350"/>
+        <di:waypoint x="576" y="240"/>
+        <di:waypoint x="602" y="240"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEventCustomerOnboardingSimple">
+        <dc:Bounds x="179" y="109" width="36" height="36"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="159" y="152" width="77" height="27"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1raexvc_di" bpmnElement="TaskScoreCustomer">
+        <dc:Bounds x="270" y="87" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_19ecd5n_di" bpmnElement="GatewayOrderAccepted" isMarkerVisible="true">
+        <dc:Bounds x="595" y="102" width="50" height="50"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="579" y="78" width="82" height="14"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0x3ownm_di" bpmnElement="EndEventRejected">
+        <dc:Bounds x="602" y="222" width="36" height="36"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="582" y="265" width="77" height="27"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_11d1rd0_di" bpmnElement="EndEventProcessed">
+        <dc:Bounds x="882" y="109" width="36" height="36"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="862" y="152" width="77" height="27"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_16rs01c_di" bpmnElement="TaskCreateCustomerInCrm">
+        <dc:Bounds x="710" y="87" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1mqrzkh_di" bpmnElement="TaskApproveCustomerOrder">
+        <dc:Bounds x="430" y="87" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0b11uq8_di" bpmnElement="Activity_0bu252v">
+        <dc:Bounds x="450" y="310" width="100" height="80"/>
+        <bpmndi:BPMNLabel/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0t42lph_di" bpmnElement="Event_0k14341">
+        <dc:Bounds x="482" y="149" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
